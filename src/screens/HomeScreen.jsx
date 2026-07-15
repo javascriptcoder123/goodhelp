@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, TextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Alert } from 'react-native';
 
 // import 'firebase/auth';
 import firebase from 'firebase/app';
@@ -11,6 +11,29 @@ import Button from '../components/Button';
 export default function HomeScreen(props) {
 
   const navigation = useNavigation();
+
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "This will permanently delete your account and all associated data. This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const result = await props.route.params.deleteAccount()
+            if (!result.success) {
+              Alert.alert(
+                "Couldn't delete account",
+                "Please log out, log back in, and try again."
+              )
+            }
+          },
+        },
+      ]
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -37,6 +60,9 @@ export default function HomeScreen(props) {
           </Button>
           <Button mode="contained" onPress={() => props.route.params.logout()} style={styles.logout}>
           Logout
+        </Button>
+        <Button mode="contained" onPress={confirmDeleteAccount} style={styles.deleteAccount}>
+          Delete Account
         </Button>
       </View>
     </View>
@@ -67,6 +93,11 @@ const styles = StyleSheet.create({
   },
   logout: {
     backgroundColor: 'red',
+    width: 180,
+    fontSize: 15,
+  },
+  deleteAccount: {
+    backgroundColor: 'darkred',
     width: 180,
     fontSize: 15,
   },
