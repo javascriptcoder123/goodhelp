@@ -76,7 +76,7 @@ function SearchLocationInput(props) {
   const handleSelectPrediction = async (prediction) => {
     setQuery(prediction.description);
     setPredictions([]);
-    const details = await fetchPlaceDetails(prediction.place_id);
+    const details = await fetchPlaceDetails(prediction.placeId);
     const formatted = details?.formatted_address || prediction.description;
     props.setLocation?.(formatted);
     if (details?.geometry?.location) {
@@ -98,7 +98,7 @@ function SearchLocationInput(props) {
         <View style={styles.dropdown}>
           {predictions.map(item => (
             <TouchableOpacity
-              key={item.place_id}
+              key={item.placeId}
               style={styles.option}
               onPress={() => handleSelectPrediction(item)}
             >

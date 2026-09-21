@@ -1,25 +1,38 @@
 // Native (iOS/Android) has no window.google - the Places Autocomplete
-// widget used on web only works in a browser. This hits the Places HTTP
-// API directly with fetch, which works the same on every platform, so
+// widget used on web only works in a browser. This hits the Places API
+// (New) directly with fetch, which works the same on every platform, so
 // native gets real search suggestions instead of a plain text field.
+//
+// This key only has "Places API (New)" enabled, not the legacy
+// place/autocomplete/json REST API, so these calls use the new
+// places.googleapis.com endpoints (POST + JSON, X-Goog-Api-Key header)
+// rather than the old GET-with-key-in-query-string ones.
 const PLACES_API_KEY = "REDACTED";
 
-export async function fetchPlacePredictions(input, types) {
+export async function fetchPlacePredictions(input, includedPrimaryTypes) {
   if (!input || !input.trim()) return [];
 
-  const params = new URLSearchParams({ input, key: PLACES_API_KEY });
-  if (types) params.set('types', types);
+  const body = { input };
+  if (includedPrimaryTypes) body.includedPrimaryTypes = [includedPrimaryTypes];
 
   try {
-    const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`);
+    const response = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': PLACES_API_KEY,
+      },
+      body: JSON.stringify(body),
+    });
     const json = await response.json();
-    if (json.status !== 'OK') {
-      if (json.status !== 'ZERO_RESULTS') {
-        console.error('Places autocomplete error:', json.status, json.error_message);
-      }
+    if (json.error) {
+      console.error('Places autocomplete error:', json.error.status, json.error.message);
       return [];
     }
-    return json.predictions || [];
+    return (json.suggestions || [])
+      .map(s => s.placePrediction)
+      .filter(Boolean)
+      .map(p => ({ placeId: p.placeId, description: p.text?.text }));
   } catch (e) {
     console.error('Places autocomplete request failed:', e);
     return [];
@@ -27,20 +40,22 @@ export async function fetchPlacePredictions(input, types) {
 }
 
 export async function fetchPlaceDetails(placeId) {
-  const params = new URLSearchParams({
-    place_id: placeId,
-    fields: 'formatted_address,geometry',
-    key: PLACES_API_KEY,
-  });
-
   try {
-    const response = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?${params.toString()}`);
+    const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+      headers: {
+        'X-Goog-Api-Key': PLACES_API_KEY,
+        'X-Goog-FieldMask': 'formattedAddress,location',
+      },
+    });
     const json = await response.json();
-    if (json.status !== 'OK') {
-      console.error('Place details error:', json.status, json.error_message);
+    if (json.error) {
+      console.error('Place details error:', json.error.status, json.error.message);
       return null;
     }
-    return json.result;
+    return {
+      formatted_address: json.formattedAddress,
+      geometry: json.location ? { location: { lat: json.location.latitude, lng: json.location.longitude } } : null,
+    };
   } catch (e) {
     console.error('Place details request failed:', e);
     return null;
