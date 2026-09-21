@@ -20,7 +20,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.chackerian.goodhelp",
-      "buildNumber": "5"
+      "buildNumber": "6"
     },
     "android": {
       "adaptiveIcon": {
