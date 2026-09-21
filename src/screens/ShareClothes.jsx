@@ -123,7 +123,10 @@ export default function ShareClothes(props) {
       return;
     }
 
-    const docId = `${title.value}-${Date.now()}-${Math.round(Math.random() * 100000)}`;
+    // A title can contain characters like "/" that are invalid inside a
+    // Firestore document path, so derive the id from Firestore's own
+    // collision-free generator instead of the user-entered title.
+    const docId = doc(collection(firestore, "clothing")).id;
     const item = {
       docId,
       title: title.value,
@@ -284,7 +287,7 @@ export default function ShareClothes(props) {
             <Button mode="contained" onPress={onAddItem} style={styles.defaultsave} disabled={imageUploading}>
               + Save Item
             </Button>
-            <Button mode="contained" onPress={onSubmitItems} style={styles.submitbutton} disabled={LIST.length === 0}>
+            <Button mode="contained" onPress={onSubmitItems} style={styles.submitbutton} labelStyle={{ color: 'white' }} disabled={LIST.length === 0}>
               Submit Items
             </Button>
           </View>

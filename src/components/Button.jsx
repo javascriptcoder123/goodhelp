@@ -2,7 +2,7 @@ import React from 'react'
 import { StyleSheet } from 'react-native'
 import { Button as PaperButton } from 'react-native-paper'
 
-export default function Button({ mode, style, ...props }) {
+export default function Button({ mode, style, labelStyle, ...props }) {
   return (
     <PaperButton
       style={[
@@ -10,7 +10,7 @@ export default function Button({ mode, style, ...props }) {
         mode === 'outlined' && { backgroundColor: 'white' },
         style,
       ]}
-      labelStyle={styles.text}
+      labelStyle={[styles.text, labelStyle]}
       mode={mode}
       {...props}
     />
