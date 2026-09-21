@@ -16,7 +16,7 @@ const resolveContentType = (uri, mimeType, blobType) => {
   return 'image/jpeg';
 };
 
-const ImageDropper = forwardRef(function ImageDropper(props, ref) {
+const ImageDropper = forwardRef(function ImageDropper(props, forwardedRef) {
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
   const uploadIdRef = useRef(0);
@@ -25,7 +25,7 @@ const ImageDropper = forwardRef(function ImageDropper(props, ref) {
     props.onUploadingChange?.(uploading);
   }, [uploading]);
 
-  useImperativeHandle(ref, () => ({
+  useImperativeHandle(forwardedRef, () => ({
     reset: () => {
       // Invalidate any in-flight upload callbacks so a stale response
       // can't repopulate the image after the form has moved on.
