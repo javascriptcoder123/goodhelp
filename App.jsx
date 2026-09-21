@@ -3,9 +3,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React, { useState, createContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer, createSwitchNavigator, createAppContainer, createNavigatorFactory } from '@react-navigation/native';
-import { Button } from 'react-native';
+import { Button, View, ActivityIndicator } from 'react-native';
 import { deleteUser } from 'firebase/auth';
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, store, firestore } from './firebase.js';
 
 //  Import of all screens
@@ -25,10 +25,31 @@ import LoginScreen from './src/screens/LoginScreen'
 import RegisterScreen from './src/screens/RegisterScreen'
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen'
 
-import MapScreen from './src/screens/MapScreen'
+// react-native-maps has no web implementation, so it must not be evaluated
+// eagerly - importing it at the top level crashes the whole web bundle at
+// boot. Load it lazily so it's only pulled in when MapScreen is navigated to.
+const MapScreen = React.lazy(() => import('./src/screens/MapScreen'))
+function MapScreenWithSuspense(props) {
+  return (
+    <React.Suspense fallback={
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    }>
+      <MapScreen {...props} />
+    </React.Suspense>
+  )
+}
 
 export default function AuthNavigator() {
-    const [user, setUser] = useState(true);
+    // null (not true) so the app renders the login flow until the
+    // AsyncStorage-restored session resolves - a truthy placeholder here
+    // briefly mounts the logged-in tabs with a bogus `user`, and since
+    // React Navigation's initialParams are captured once at mount, any
+    // screen (e.g. Share Food) that mounts during that window is stuck
+    // with that bogus user for its lifetime - silently breaking writes
+    // that read user.email.
+    const [user, setUser] = useState(null);
 
     const addUser = async (value) => {
       try {
@@ -60,15 +81,15 @@ export default function AuthNavigator() {
 
     function login(a) {
         addUser(a)
-        const userRef = store.collection('users').doc(a.email);
+        const userRef = doc(firestore, 'users', a.email);
 
-        userRef.get().then((doc) => {
-            if (doc.exists) {
+        getDoc(userRef).then((docSnap) => {
+            if (docSnap.exists()) {
                 console.log("LOGIN")
             } else {
                 console.log("REGISTER USER", userRef)
                 if (a.picture) {
-                    userRef.set({
+                    setDoc(userRef, {
                         name: a.name || "",
                         email: a.email || "",
                         picture: a.picture.data.url,
@@ -78,7 +99,7 @@ export default function AuthNavigator() {
                     })
                 } else {
                     console.log("CREATE")
-                    userRef.set({
+                    setDoc(userRef, {
                         name: a.name || "",
                         email: a.email || "",
                         picture: "https://www.edmundsgovtech.com/wp-content/uploads/2020/01/default-picture_0_0.png",
@@ -171,7 +192,7 @@ function MyStack(props) {
         />
         <AuthStack.Screen name="Adopt Animals" component={AcceptAnimals} />
         <AuthStack.Screen name="Donation Screen" component={DonationScreen} />
-        <AuthStack.Screen name="MapScreen" component={MapScreen} />
+        <AuthStack.Screen name="MapScreen" component={MapScreenWithSuspense} />
       </AuthStack.Navigator>
   );
 }
@@ -244,9 +265,9 @@ function MyTabs(props) {
             component={DonationScreen}
             initialParams={{user: props.user, logout: props.logout}}
           />
-          <AppStack.Screen 
-            name="MapScreen" 
-            component={MapScreen}
+          <AppStack.Screen
+            name="MapScreen"
+            component={MapScreenWithSuspense}
           />
         </AppStack.Navigator>
     );

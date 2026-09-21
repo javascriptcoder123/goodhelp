@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 
 import Button from '../components/Button';
+import openNearbySearch from '../utils/openNearbySearch';
 
 export default function GuestHomeScreen() {
   const navigation = useNavigation();
@@ -21,6 +22,12 @@ export default function GuestHomeScreen() {
         </Button>
         <Button mode="contained" onPress={() => navigation.navigate('Adopt Animals')} style={styles.default}>
           Rescue Animals
+        </Button>
+        <Button mode="contained" onPress={() => openNearbySearch('food banks near me')} style={styles.default}>
+          Find Food Banks
+        </Button>
+        <Button mode="contained" onPress={() => openNearbySearch('animal shelters near me')} style={styles.default}>
+          Find Animal Shelters
         </Button>
         <Button mode="contained" onPress={() => navigation.navigate('LoginScreen')} style={styles.signIn}>
           Sign In

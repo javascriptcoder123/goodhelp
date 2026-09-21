@@ -2,7 +2,7 @@
   "expo": {
     "name": "goodhelp",
     "slug": "goodhelp",
-    "version": "3.0.0",
+    "version": "3.1.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,9 +20,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.chackerian.goodhelp",
-      "config": {
-        "googleMapsApiKey": "REDACTED"
-      },
       "buildNumber": "3"
     },
     "android": {
@@ -30,12 +27,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.chackerian.goodhelp",
-      "config": {
-        "googleMaps": {
-          "apiKey": "REDACTED"
-        }
-      }
+      "package": "com.chackerian.goodhelp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -44,6 +36,18 @@
       "eas": {
         "projectId": "930b0b09-ace8-4f8d-9c68-807805e9adfa"
       }
-    }
+    },
+    "plugins": [
+      "./plugins/withIosPodfilePostInstall",
+      "expo-splash-screen",
+      "expo-status-bar",
+      [
+        "react-native-maps",
+        {
+          "iosGoogleMapsApiKey": "REDACTED",
+          "androidGoogleMapsApiKey": "REDACTED"
+        }
+      ]
+    ]
   }
 }

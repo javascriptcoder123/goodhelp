@@ -3,6 +3,7 @@ import { Text, TextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
 import { auth } from '../../firebase';
 
@@ -54,6 +55,9 @@ export default function LoginScreen(props) {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Feather name="arrow-left" size={28} color="black" />
+      </TouchableOpacity>
       <View style={styles.form}>
         <Text style={styles.logo}>Good Help</Text>
         <TextInput
@@ -102,6 +106,12 @@ export default function LoginScreen(props) {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    position: 'absolute',
+    top: 48,
+    left: 16,
+    zIndex: 1,
+  },
   forgotPassword: {
     width: '100%',
     alignItems: 'center',

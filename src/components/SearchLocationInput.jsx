@@ -1,48 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, StyleSheet, Text, TextInput, Platform } from 'react-native';
-
-let autoComplete;
-
-const loadScript = (url, callback) => {
-  if (Platform.OS == "web"){
-    let script = document.createElement("script");
-    script.type = "text/javascript";
-
-    if (script.readyState) {
-      script.onreadystatechange = function() {
-        if (script.readyState === "loaded" || script.readyState === "complete") {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else {
-      script.onload = () => callback();
-    }
-
-    script.src = url;
-    document.getElementsByTagName("head")[0].appendChild(script);
-  }
-};
+import loadGoogleMapsScript from '../utils/loadGoogleMapsScript';
 
 function handleScriptLoad(updateQuery, autoCompleteRef, props) {
-  autoComplete = new window.google.maps.places.Autocomplete(
+  const autoComplete = new window.google.maps.places.Autocomplete(
     autoCompleteRef.current,
     { types: [] }
   );
   autoComplete.setFields(["address_components", "formatted_address", "geometry"]);
   autoComplete.addListener("place_changed", () =>
-    handlePlaceSelect(updateQuery, props)
+    handlePlaceSelect(autoComplete, updateQuery, props)
   );
 }
 
-async function handlePlaceSelect(updateQuery, props) {
+async function handlePlaceSelect(autoComplete, updateQuery, props) {
   const addressObject = autoComplete.getPlace();
+  // Pressing Enter (or blurring) without picking a suggestion from the
+  // dropdown returns a place with no geometry - bail out instead of
+  // crashing so the rest of the form keeps working.
+  if (!addressObject || !addressObject.geometry) {
+    return;
+  }
   const query = addressObject.formatted_address;
   updateQuery(query);
   var lat = addressObject.geometry.location.lat();
   var lng = addressObject.geometry.location.lng();
   props.setLocation(query)
-  console.log("query", query.split(" "))
   props.setlatLng({lat: lat, lng: lng})
 }
 
@@ -51,8 +34,11 @@ function SearchLocationInput(props) {
   const autoCompleteRef = useRef(null);
 
   useEffect(() => {
-    loadScript(
-      `https://maps.googleapis.com/maps/api/js?key=REDACTED&libraries=places,geometry`,
+    // The Autocomplete widget is built on the browser-only Google Maps JS
+    // SDK (window.google) - there's no native equivalent, so skip it off
+    // web rather than crash with "Cannot read property 'maps' of undefined".
+    if (Platform.OS !== "web") return;
+    loadGoogleMapsScript().then(
       () => handleScriptLoad(setQuery, autoCompleteRef, props)
     );
   }, []);

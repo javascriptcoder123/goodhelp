@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, StyleSheet, View } from "react-native";
 import Button from './Button'
@@ -16,7 +16,7 @@ const resolveContentType = (uri, mimeType, blobType) => {
   return 'image/jpeg';
 };
 
-export default function ImageDropper(props) {
+const ImageDropper = forwardRef(function ImageDropper(props, ref) {
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
   const uploadIdRef = useRef(0);
@@ -24,6 +24,16 @@ export default function ImageDropper(props) {
   useEffect(() => {
     props.onUploadingChange?.(uploading);
   }, [uploading]);
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      // Invalidate any in-flight upload callbacks so a stale response
+      // can't repopulate the image after the form has moved on.
+      uploadIdRef.current++;
+      setImage(null);
+      setUploading(false);
+    },
+  }));
 
   const uploadImage = async (uri, mimeType) => {
     const uploadId = ++uploadIdRef.current;
@@ -99,19 +109,58 @@ export default function ImageDropper(props) {
     await uploadImage(asset.uri, asset.mimeType);
   };
 
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        'Camera access needed',
+        'Please allow camera access in your device settings to take a photo.'
+      );
+      return;
+    }
+
+    const cameraResult = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (cameraResult.canceled || !cameraResult.assets?.length) {
+      return;
+    }
+
+    const asset = cameraResult.assets[0];
+    setImage(asset.uri);
+    await uploadImage(asset.uri, asset.mimeType);
+  };
+
   return (
     <View style={styles.container}>
-      <Button
-        mode="outlined"
-        color="black"
-        onPress={openImagePicker}
-        disabled={uploading}>
-        {uploading ? 'Uploading...' : image ? 'Replace Image' : 'Add Image'}
-      </Button>
+      <View style={styles.buttonRow}>
+        <Button
+          mode="outlined"
+          color="black"
+          onPress={takePhoto}
+          disabled={uploading}
+          style={styles.button}>
+          {uploading ? 'Uploading...' : 'Take Photo'}
+        </Button>
+        <Button
+          mode="outlined"
+          color="black"
+          onPress={openImagePicker}
+          disabled={uploading}
+          style={styles.button}>
+          {uploading ? 'Uploading...' : image ? 'Replace Image' : 'Choose from Library'}
+        </Button>
+      </View>
       {image ? <Image source={{ uri: image }} style={styles.preview} /> : null}
     </View>
   );
-}
+});
+
+export default ImageDropper;
 
 const styles = StyleSheet.create({
   container: {
@@ -119,6 +168,15 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     borderStyle: 'dashed',
     borderColor: 'black',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  button: {
+    marginVertical: 0,
   },
   preview: {
     width: 200,

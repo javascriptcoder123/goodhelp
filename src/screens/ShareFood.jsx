@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { collection, query, where, getDocs, setDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, writeBatch } from "firebase/firestore";
 import { useNavigation } from '@react-navigation/native';
 import { Text, TextInput } from 'react-native-paper'
-import { TouchableOpacity, StyleSheet, View, Switch, Image, Dimensions, FlatList } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Switch, Image, Dimensions, FlatList, Alert } from 'react-native';
 
 import CalendarPicker from 'react-native-calendar-picker';
 
@@ -19,6 +19,7 @@ export default function ShareFood(props) {
   const navigation = useNavigation();
   const selectREF1 = useRef(null)
   const selectREF2 = useRef(null)
+  const imageDropperRef = useRef(null)
 
   const [LIST, setLIST] = useState([]);
   const [city, setCity] = useState('');
@@ -34,7 +35,10 @@ export default function ShareFood(props) {
   const [selectedStartDate, setSelectedStartDate] = React.useState(null);
   const [selectedEndDate, setSelectedEndDate] = React.useState(null);
   const minDate = new Date(); // Today
-  const maxDate = new Date(2026, 6, 3);
+  // A year out from today, computed dynamically so the picker doesn't end up
+  // with a maxDate in the past (and every day disabled) once a hardcoded
+  // date rolls by.
+  const maxDate = new Date(minDate.getFullYear() + 1, minDate.getMonth(), minDate.getDate());
 
   function onDateChange(date, type) {
     if (type === 'END_DATE') {
@@ -60,7 +64,6 @@ export default function ShareFood(props) {
     { label: 'Dairy', value: 'Dairy' },
   ]);
 
-  const id = title.value + "-" + String(Math.round(Math.random()*100000))
   const [groupID, setGroupID] = React.useState();
 
   useEffect(() => {
@@ -89,9 +92,25 @@ export default function ShareFood(props) {
     { label: 'Bad', value: 'Bad' },
   ]);
 
-  async function onSaveItem() {
-    console.log("DATE", selectedStartDate, selectedEndDate)
-    await setDoc(doc(firestore, "food", id), {
+  function onAddItem() {
+    if (!selectedStartDate) {
+      Alert.alert('Missing date', 'Please select an availability date on the calendar.');
+      return;
+    }
+    if (!title.value.trim()) {
+      setTitle(title => ({ ...title, error: 'Title is required' }));
+      Alert.alert('Missing title', 'Please enter a title before adding this item.');
+      return;
+    }
+    if (!quantity.value.trim()) {
+      setQuantity(quantity => ({ ...quantity, error: 'Quantity is required' }));
+      Alert.alert('Missing quantity', 'Please enter a quantity before adding this item.');
+      return;
+    }
+
+    const docId = `${title.value}-${Date.now()}-${Math.round(Math.random() * 100000)}`;
+    const item = {
+      docId,
       title: title.value,
       groupID: groupID,
       picture: imageURL,
@@ -101,24 +120,42 @@ export default function ShareFood(props) {
       email: props.route.params.user.email,
       comments: comments.value,
       startDate: selectedStartDate.toDate(),
-      endDate: selectedEndDate.toDate(),
+      endDate: (selectedEndDate || selectedStartDate).toDate(),
       dateCreated: new Date(),
       deliverable: isEnabled,
       type: selected1,
       condition: selected2,
-    });
-    var obj = {
-      picture: imageURL,
-      title: title.value,
-      quantity: quantity.value
     }
-    setLIST(LIST => [...LIST, obj])
-    setTitle("")
-    setQuantity("")
-    setPhoneNumber("")
-    setComments("")
+    setLIST(LIST => [...LIST, item])
+    setTitle({ value: '', error: '' })
+    setQuantity({ value: '', error: '' })
+    setPhoneNumber({ value: '', error: '' })
+    setComments({ value: '', error: '' })
+    setImageURL('')
+    imageDropperRef?.current?.reset();
     selectREF1?.current?.click();
     selectREF2?.current?.click();
+  }
+
+  async function onSubmitItems() {
+    if (LIST.length === 0) {
+      Alert.alert('No items to submit', 'Add at least one item to your donation before submitting.');
+      return;
+    }
+    try {
+      const batch = writeBatch(firestore);
+      LIST.forEach(({ docId, ...data }) => {
+        batch.set(doc(firestore, "food", docId), data);
+      });
+      await batch.commit();
+    } catch (e) {
+      console.error('Failed to submit food donation:', e);
+      Alert.alert("Couldn't submit", 'Something went wrong submitting your donation. Please try again.');
+      return;
+    }
+    setLIST([]);
+    setGroupID(Math.round(Math.random() * 1000000000));
+    Alert.alert('Donation submitted', 'Your food donation was submitted successfully.');
   }
 
   return (
@@ -135,6 +172,7 @@ export default function ShareFood(props) {
           <View>
             <Text style={styles.formheading}>Donate Food</Text>
             <Text style={styles.formintro}>No one has ever become poor from giving.</Text>
+            <Text style={styles.helperText}>Donating more than one item? Add each item of your donation individually below, then tap Submit Items once you've added everything.</Text>
           </View>
           <View style={styles.switchContainer}>
             <View style={{flexDirection: "row", gap: 5}}>
@@ -222,10 +260,13 @@ export default function ShareFood(props) {
             errorText={comments.error}
             autoCapitalize="none"
           />
-          <ImageDropper setImageURL={setImageURL} onUploadingChange={setImageUploading} />
+          <ImageDropper ref={imageDropperRef} setImageURL={setImageURL} onUploadingChange={setImageUploading} />
           <View style={styles.centered}>
-            <Button mode="contained" onPress={onSaveItem} style={styles.defaultsave} disabled={imageUploading}>
-              Save Item
+            <Button mode="contained" onPress={onAddItem} style={styles.defaultsave} disabled={imageUploading}>
+              + Save Item
+            </Button>
+            <Button mode="contained" onPress={onSubmitItems} style={styles.submitbutton} disabled={LIST.length === 0}>
+              Submit Items
             </Button>
           </View>
         </View>
@@ -277,7 +318,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'green',
     width: 300,
     alignItems: "center",
+  },
+  submitbutton: {
+    backgroundColor: 'blue',
+    width: 300,
+    alignItems: "center",
     marginBottom: 100,
+  },
+  helperText: {
+    marginTop: 8,
+    fontStyle: 'italic',
+    color: '#555',
   },
   container: {
     flex: 1,
@@ -302,7 +353,6 @@ const styles = StyleSheet.create({
     marginLeft: 'auto'
   },
   switch: {
-    width: 30,
     marginRight: 20,
   },
   switchContainer: {

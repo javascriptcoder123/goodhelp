@@ -3,10 +3,8 @@ import { Text, TextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { TouchableOpacity, StyleSheet, View, Alert } from 'react-native';
 
-// import 'firebase/auth';
-import firebase from 'firebase/app';
-
 import Button from '../components/Button';
+import openNearbySearch from '../utils/openNearbySearch';
 
 export default function HomeScreen(props) {
 
@@ -57,6 +55,12 @@ export default function HomeScreen(props) {
           </Button>
           <Button mode="contained" onPress={() => navigation.navigate("Adopt Animals")} style={styles.default}>
             Rescue Animals
+          </Button>
+          <Button mode="contained" onPress={() => openNearbySearch('food banks near me')} style={styles.default}>
+            Find Food Banks
+          </Button>
+          <Button mode="contained" onPress={() => openNearbySearch('animal shelters near me')} style={styles.default}>
+            Find Animal Shelters
           </Button>
           <Button mode="contained" onPress={() => props.route.params.logout()} style={styles.logout}>
           Logout
