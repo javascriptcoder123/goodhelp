@@ -1,2 +1,6 @@
 .expo/
 node_modules/
+
+# Local API keys (see .env.example)
+.env
+.env.local

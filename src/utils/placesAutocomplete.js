@@ -7,7 +7,7 @@
 // place/autocomplete/json REST API, so these calls use the new
 // places.googleapis.com endpoints (POST + JSON, X-Goog-Api-Key header)
 // rather than the old GET-with-key-in-query-string ones.
-const PLACES_API_KEY = "REDACTED";
+const PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
 
 export async function fetchPlacePredictions(input, includedPrimaryTypes) {
   if (!input || !input.trim()) return [];

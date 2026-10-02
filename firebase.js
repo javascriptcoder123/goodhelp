@@ -5,7 +5,7 @@ import { getStorage } from "firebase/storage";
 import { getFirestore } from 'firebase/firestore';
 
 var firebaseConfig = {
-    apiKey: "REDACTED",
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
     authDomain: "goodhelp-c0f3f.firebaseapp.com",
     projectId: "goodhelp-c0f3f",
     storageBucket: "goodhelp-c0f3f.appspot.com",

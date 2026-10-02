@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-const SCRIPT_URL = "https://maps.googleapis.com/maps/api/js?key=REDACTED&libraries=places,geometry";
+const SCRIPT_URL = `https://maps.googleapis.com/maps/api/js?key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_JS_API_KEY}&libraries=places,geometry`;
 
 let loadPromise;
 
