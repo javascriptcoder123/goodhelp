@@ -154,6 +154,7 @@ export default function PostAnimals(props) {
     setLIST([]);
     setGroupID(Math.round(Math.random() * 1000000000));
     Alert.alert('Listings submitted', 'Your animal listings were submitted successfully.');
+    navigation.navigate('Adopt Animals');
   }
 
   return (

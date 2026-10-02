@@ -1,5 +1,5 @@
 import { TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useImperativeHandle, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { AntDesign } from '@expo/vector-icons'; 
 
@@ -21,6 +21,10 @@ const Select = React.forwardRef((props, ref) => {
         setCurrent(null)
         setSelected(null)
     }
+    // Screens clear the dropdown after saving an item. This used to call
+    // .click() on the close button's ref, which only exists on web - on
+    // native it threw "click is not a function" and crashed the save.
+    useImperativeHandle(ref, () => ({ reset: handleReset }));
     const handleOpen = () => setisClosed(flag => !flag);
     const handleSelect = (name) => {
         setCurrent(name)
@@ -40,7 +44,7 @@ const Select = React.forwardRef((props, ref) => {
         <TouchableOpacity style={styles.wrapper} onPress={handleOpen}>
             <Text style={styles.selected}>{current || placeholder}</Text>
             {current ?
-                <TouchableOpacity onPress={() => handleReset()} ref={ref}>
+                <TouchableOpacity onPress={() => handleReset()}>
                     <AntDesign name="close" size={24} color="black" />
                 </TouchableOpacity>
             :

@@ -183,7 +183,7 @@ function MyStack(props) {
           options={({ navigation }) => ({
             headerRight: () => (
               <Button
-                onPress={() => navigation.navigate('MapScreen', { fromScreen: 'clothes' })}
+                onPress={() => navigation.navigate('MapScreen', { fromScreen: 'clothing' })}
                 title="map"
                 color="black"
               />
@@ -248,7 +248,7 @@ function MyTabs(props) {
             options={({ navigation }) => ({
               headerRight: () => (
                 <Button
-                  onPress={() => navigation.navigate('MapScreen', { fromScreen: 'clothes' })}
+                  onPress={() => navigation.navigate('MapScreen', { fromScreen: 'clothing' })}
                   title="map"
                   color="black"
                 />

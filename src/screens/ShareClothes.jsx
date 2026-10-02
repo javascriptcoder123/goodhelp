@@ -12,7 +12,6 @@ import { firestore } from '../../firebase.js';
 import Button from '../components/Button';
 import ImageDropper from '../components/ImageDropper';
 import SearchLocationInput from '../components/SearchLocationInput';
-import SearchZipCode from '../components/SearchZipCode.jsx';
 import Select from '../components/Select';
 
 export default function ShareClothes(props) {
@@ -28,12 +27,10 @@ export default function ShareClothes(props) {
   const [LatLng, setLatLng] = useState({});
 
   const [location, setLocation] = useState('');
-  const [zipcode,setZipCode] = useState('');
   const [imageURL, setImageURL] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState({ value: '', error: '' });
- // const [zipcode, setZipCode] = useState({value: ' ', error: ' '});
   const [quantity, setQuantity] = useState({ value: '', error: '' });
   const [comments, setComments] = useState({ value: '', error: '' });
   const [phoneNumber, setPhoneNumber] = useState({ value: '', error: '' });
@@ -172,6 +169,7 @@ export default function ShareClothes(props) {
     setLIST([]);
     setGroupID(Math.round(Math.random() * 1000000000));
     Alert.alert('Donation submitted', 'Your clothing donation was submitted successfully.');
+    navigation.navigate('Accept Clothes');
   }
 
   const handlePhoneNumberChange = (text) => {
@@ -222,7 +220,6 @@ export default function ShareClothes(props) {
           />
 
           <SearchLocationInput style={{width: "100%", height: 60}} location={location} setlatLng={(val) => {setLatLng(val)}} setLocation={setLocation} />
-          <SearchZipCode style={{width: "100%", height: 60}} zipcode={zipcode} setlatLng={(val) => {setLatLng(val)}} setZipCode={setZipCode} />
 
           <Select
             ref={selectREF1}

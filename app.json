@@ -2,7 +2,7 @@
   "expo": {
     "name": "goodhelp",
     "slug": "goodhelp",
-    "version": "3.1.4",
+    "version": "3.1.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,7 +20,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.chackerian.goodhelp",
-      "buildNumber": "6"
+      "buildNumber": "8"
     },
     "android": {
       "adaptiveIcon": {

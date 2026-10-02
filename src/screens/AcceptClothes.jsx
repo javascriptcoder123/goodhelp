@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Text, TextInput, RadioButton } from 'react-native-paper';
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { TouchableOpacity, StyleSheet, View, FlatList } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, FlatList, Image } from 'react-native';
 
 import { firestore } from '../../firebase.js';
 import moment from "moment";
@@ -14,8 +14,8 @@ export default function AcceptClothes(props) {
   const [LIST, setLIST] = useState([])
 
   const setClothes = async function(){
-    const querySnapshot = await getDocs(collection(firestore, "clothes"));
-    const newList = querySnapshot.docs.map((doc) => doc.data());
+    const querySnapshot = await getDocs(collection(firestore, "clothing"));
+    const newList = querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
     setLIST(newList);
   }
 
@@ -31,11 +31,24 @@ export default function AcceptClothes(props) {
     )
   }
 
+  // Older or partially-written listings may be missing dateCreated, so
+  // don't assume it's a Firestore Timestamp.
+  const toDate = (date) => {
+    if (!date) return null;
+    if (date.seconds != null) {
+      return new Date(date.seconds * 1000 + (date.nanoseconds || 0) / 1000000);
+    }
+    if (typeof date.toDate === 'function') return date.toDate();
+    if (date instanceof Date) return date;
+    const parsed = new Date(date);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   const getTime = (date) => {
-    var dates = new Date(date.seconds * 1000 + date.nanoseconds/1000000)
+    const dates = toDate(date);
+    if (!dates) return '';
     let result = moment(dates).fromNow();
     const now = moment();
-    const minutes = now.diff(dates, 'minutes');
     const days = now.diff(dates, 'days');
     const weeks = now.diff(dates, 'weeks');
     if (days >= 7) {
@@ -48,16 +61,22 @@ export default function AcceptClothes(props) {
     return result;
   };
 
-  const Item = ({title, quantity, picture, dateCreated, index}) => (
-    <View style={styles.item} key={index}>
-      <Image source={{uri: picture}}
-        style={styles.icon}
-      />
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.date}>{getTime(dateCreated)}</Text>
-      <Text style={styles.quantity}>{quantity}</Text>
-    </View>
-  );
+  const Item = ({title, quantity, picture, dateCreated}) => {
+    const timeLabel = getTime(dateCreated);
+    const hasPicture = typeof picture === 'string' && picture.trim().length > 0;
+    return (
+      <View style={styles.item}>
+        {hasPicture ? (
+          <Image source={{uri: picture}} style={styles.icon} />
+        ) : (
+          <View style={styles.icon} />
+        )}
+        <Text style={styles.title}>{title || 'Untitled'}</Text>
+        {timeLabel ? <Text style={styles.date}>{timeLabel}</Text> : null}
+        <Text style={styles.quantity}>{quantity}</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -65,7 +84,7 @@ export default function AcceptClothes(props) {
         data={LIST}
         ListEmptyComponent={empty}
         renderItem={({item}) => <Item title={item.title} quantity={item.quantity} picture={item.picture} dateCreated={item.dateCreated} />}
-        keyExtractor={item => item.id}
+        keyExtractor={(item, index) => item.id ?? String(index)}
       />
     </View>
   )
@@ -74,7 +93,7 @@ export default function AcceptClothes(props) {
 const styles = StyleSheet.create({
   centered: {
     flex: 1,
-    alignItems: "left",
+    alignItems: "flex-start",
   },
   icon: {
     width: 36,

@@ -136,8 +136,8 @@ export default function ShareFood(props) {
     setComments({ value: '', error: '' })
     setImageURL('')
     imageDropperRef?.current?.reset();
-    selectREF1?.current?.click();
-    selectREF2?.current?.click();
+    selectREF1?.current?.reset();
+    selectREF2?.current?.reset();
   }
 
   async function onSubmitItems() {
@@ -159,6 +159,7 @@ export default function ShareFood(props) {
     setLIST([]);
     setGroupID(Math.round(Math.random() * 1000000000));
     Alert.alert('Donation submitted', 'Your food donation was submitted successfully.');
+    navigation.navigate('Accept Food');
   }
 
   return (

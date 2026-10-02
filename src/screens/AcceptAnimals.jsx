@@ -108,8 +108,14 @@ export default function AcceptAnimals(props) {
           ) : (
             <View style={styles.iconPlaceholder} />
           )}
-          <Text style={styles.title}>{title || 'Untitled'}</Text>
-          {timeLabel ? <Text style={styles.date}>{timeLabel}</Text> : null}
+          <View style={styles.details}>
+            <Text style={styles.title} numberOfLines={1}>
+              {title || 'Untitled'}
+            </Text>
+            {timeLabel ? (
+              <Text style={styles.date}>Posted {timeLabel}</Text>
+            ) : null}
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -127,7 +133,9 @@ export default function AcceptAnimals(props) {
             picture={item.picture}
             groupID={item.groupID}
             documentId={item.id}
-            dateCreated={item.dateCreated}
+            // Older listings were saved without dateCreated; fall back to
+            // the listing's start date so every row still shows a date.
+            dateCreated={item.dateCreated ?? item.startDate}
           />
         )}
         // renderItem={({ item }) => console.group(item)}
@@ -142,7 +150,7 @@ export default function AcceptAnimals(props) {
 const styles = StyleSheet.create({
   centered: {
     flex: 1,
-    alignItems: 'left',
+    alignItems: 'flex-start',
   },
   icon: {
     width: 36,
@@ -164,21 +172,25 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     backgroundColor: '#d3d3d3',
-    padding: 15,
-    height: 53,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    minHeight: 53,
     marginVertical: 4,
     marginHorizontal: 4,
-    justifyContent: 'center',
     alignItems: 'center',
+  },
+  details: {
+    flex: 1,
+    paddingLeft: 15,
   },
   title: {
     fontSize: 20,
-    paddingLeft: 15,
     textTransform: 'capitalize',
   },
   date: {
     fontSize: 13,
-    paddingLeft: 8,
+    color: '#555',
+    marginTop: 2,
   },
   quantity: {
     fontSize: 20,
