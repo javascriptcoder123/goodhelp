@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#6A86FF"/><stop offset="1" stop-color="#3A56E8"/></linearGradient></defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(0,-20)"><g id="mark">
+  <!-- trunk + branches -->
+  <path d="M440 860 C 470 840, 478 800, 480 740 L 482 650
+           C 455 620, 420 600, 372 588 L 388 548 C 430 560, 462 578, 484 600
+           L 486 520 L 538 520 L 540 600 C 562 578, 594 560, 636 548
+           L 652 588 C 604 600, 569 620, 542 650 L 544 740
+           C 546 800, 554 840, 584 860 Z" fill="#ffffff"/>
+  <rect x="380" y="852" width="264" height="22" rx="11" fill="#ffffff"/>
+  <!-- canopy: colorful leaves (the hands palette) -->
+  <circle cx="512" cy="300" r="118" fill="#FFD65C"/>
+  <circle cx="360" cy="360" r="108" fill="#8C7BFF"/>
+  <circle cx="664" cy="360" r="108" fill="#FF7A7A"/>
+  <circle cx="300" cy="490" r="92"  fill="#6FD3F7"/>
+  <circle cx="724" cy="490" r="92"  fill="#C58BD6"/>
+  <circle cx="420" cy="520" r="96"  fill="#7FD48A"/>
+  <circle cx="604" cy="520" r="96"  fill="#FFAE5C"/>
+  <!-- heart -->
+  <path d="M512 520 C 470 488, 418 452, 418 404 C 418 372, 442 350, 470 350
+           C 490 350, 504 362, 512 378 C 520 362, 534 350, 554 350
+           C 582 350, 606 372, 606 404 C 606 452, 554 488, 512 520 Z"
+        fill="#ffffff"/>
+</g></g>
+</svg>
